@@ -93,11 +93,20 @@ public class Stealth {
             return new String(bytes, StandardCharsets.UTF_8);
         }
     }
-    
+
+    /**
+     * Constructs a new {@code Stealth} instance with default evasion options enabled.
+     */
     public Stealth() {
         // Default constructor with all options enabled
     }
 
+    /**
+     * Constructs a new {@code Stealth} instance with a custom configuration.
+     * This allows enabling or disabling specific evasions and setting override values.
+     *
+     * @param config The {@link StealthConfig} object containing the desired settings.
+     */
     public Stealth(StealthConfig config) {
         // Apply configuration
         if (config.chromeApp != null) this.chromeApp = config.chromeApp;
@@ -130,7 +139,13 @@ public class Stealth {
         if (config.initScriptsOnly != null) this.initScriptsOnly = config.initScriptsOnly;
         if (config.scriptLogging != null) this.scriptLogging = config.scriptLogging;
     }
-    
+
+    /**
+     * Generates the complete JavaScript payload by combining all enabled evasion scripts.
+     * The payload is wrapped in an IIFE (Immediately Invoked Function Expression) to avoid polluting the global scope.
+     *
+     * @return A string containing the full JavaScript payload, or an empty string if no scripts are enabled.
+     */
     public String getScriptPayload() {
         String scriptsBlock = String.join("\n", getEnabledScripts());
         if (scriptsBlock.isEmpty()) {
@@ -138,7 +153,13 @@ public class Stealth {
         }
         return "(() => {\n" + scriptsBlock + "\n})();";
     }
-    
+
+    /**
+     * Generates the JavaScript options block based on the current override settings.
+     * This block defines a global {@code opts} constant that the evasion scripts can use.
+     *
+     * @return A string containing the JavaScript options definition.
+     */
     public String getOptionsPayload() {
         Map<String, Object> opts = new HashMap<>();
         opts.put("navigator_hardware_concurrency", navigatorHardwareConcurrency);
@@ -190,54 +211,99 @@ public class Stealth {
         return scripts;
     }
 
+    /**
+     * Applies the configured stealth evasions to a specific Playwright {@link Page}.
+     * This method injects a script that runs at the beginning of every document creation in the page.
+     * It should be called before the first navigation.
+     *
+     * @param page The Playwright {@link Page} to apply stealth to.
+     */
     public void applyStealth(Page page) {
         String payload = getScriptPayload();
         if (!payload.isEmpty()) {
             page.addInitScript(payload);
         }
     }
-    
+
+    /**
+     * Applies the configured stealth evasions to a Playwright {@link BrowserContext}.
+     * This ensures that all new pages created within this context will have the stealth scripts applied.
+     *
+     * @param context The Playwright {@link BrowserContext} to apply stealth to.
+     */
     public void applyStealth(BrowserContext context) {
         String payload = getScriptPayload();
         if (!payload.isEmpty()) {
             context.addInitScript(payload);
         }
     }
-    
+
     /**
-     * Configuration class for Stealth
+     * Configuration class for {@link Stealth}.
+     * Use this class to customize which evasions are enabled and to provide specific override values.
+     * Any properties left as {@code null} will use the default settings in {@link Stealth}.
      */
     public static class StealthConfig {
+        /** Enables/disables the 'chrome.app' evasion. Defaults to true. */
         public Boolean chromeApp;
+        /** Enables/disables the 'chrome.csi' evasion. Defaults to true. */
         public Boolean chromeCsi;
+        /** Enables/disables the 'chrome.loadTimes' evasion. Defaults to true. */
         public Boolean chromeLoadTimes;
+        /** Enables/disables the 'chrome.runtime' evasion. Defaults to false. */
         public Boolean chromeRuntime;
+        /** Enables/disables the 'hairline' evasion. Defaults to true. */
         public Boolean hairline;
+        /** Enables/disables the 'iframe.contentWindow' evasion. Defaults to true. */
         public Boolean iframeContentWindow;
+        /** Enables/disables the 'media.codecs' evasion. Defaults to true. */
         public Boolean mediaCodecs;
+        /** Enables/disables the 'navigator.hardwareConcurrency' evasion. Defaults to true. */
         public Boolean navigatorHardwareConcurrency;
+        /** Enables/disables the 'navigator.languages' evasion. Defaults to true. */
         public Boolean navigatorLanguages;
+        /** Enables/disables the 'navigator.permissions' evasion. Defaults to true. */
         public Boolean navigatorPermissions;
+        /** Enables/disables the 'navigator.platform' evasion. Defaults to true. */
         public Boolean navigatorPlatform;
+        /** Enables/disables the 'navigator.plugins' evasion. Defaults to true. */
         public Boolean navigatorPlugins;
+        /** Enables/disables the 'navigator.userAgent' evasion. Defaults to true. */
         public Boolean navigatorUserAgent;
+        /** Enables/disables the 'navigator.vendor' evasion. Defaults to true. */
         public Boolean navigatorVendor;
+        /** Enables/disables the 'navigator.webdriver' evasion. Defaults to true. */
         public Boolean navigatorWebdriver;
+        /** Enables/disables the 'error.prototype' evasion. Defaults to true. */
         public Boolean errorPrototype;
+        /** Enables/disables the 'sec-ch-ua' evasion. Defaults to true. */
         public Boolean secChUa;
+        /** Enables/disables the 'webgl.vendor' evasion. Defaults to true. */
         public Boolean webglVendor;
-        
+
+        /** Overrides the 'navigator.languages' property. Defaults to ["en-US", "en"]. */
         public List<String> navigatorLanguagesOverride;
+        /** Overrides the 'navigator.platform' property. Defaults to "Win32". */
         public String navigatorPlatformOverride;
+        /** Overrides the 'navigator.userAgent' property. Defaults to null. */
         public String navigatorUserAgentOverride;
+        /** Overrides the 'navigator.vendor' property. Defaults to null. */
         public String navigatorVendorOverride;
+        /** Overrides the 'sec-ch-ua' header. Defaults to null. */
         public String secChUaOverride;
+        /** Overrides the 'webgl.renderer' property. Defaults to "Intel Iris OpenGL Engine". */
         public String webglRendererOverride;
+        /** Overrides the 'webgl.vendor' property. Defaults to "Intel Inc.". */
         public String webglVendorOverride;
-        
+
+        /** If true, only initialization scripts are returned. Defaults to false. */
         public Boolean initScriptsOnly;
+        /** Enables/disables logging within the injected scripts. Defaults to false. */
         public Boolean scriptLogging;
-        
+
+        /**
+         * Creates a new, empty {@code StealthConfig} instance.
+         */
         public StealthConfig() {}
     }
 }

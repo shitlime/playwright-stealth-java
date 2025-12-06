@@ -4,7 +4,17 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Utils {
+/**
+ * A final utility class providing a minimalist implementation for converting Java objects to JSON strings.
+ * <p>
+ * This class is designed to handle common data types including primitives, Strings, Maps, Lists, and arrays.
+ * It also includes basic protection against circular references during serialization.
+ * <p>
+ * This class is not intended to be a fully compliant JSON library but serves the specific needs of the project.
+ */
+public final class Utils {
+    private Utils() {}
+
     private static final Map<Character, String> ESCAPE_CHARS = Map.ofEntries(
             Map.entry('"', "\\\""),
             Map.entry('\\', "\\\\"),
@@ -17,11 +27,13 @@ public class Utils {
     );
 
     /**
-     * Minimalist JSON conversion method
-     * @param obj
-     * @return
+     * Converts a given Java object into its JSON string representation.
+     * This is the main entry point for the JSON conversion.
+     *
+     * @param obj The object to be converted to a JSON string.
+     * @return A string containing the JSON representation of the object.
      */
-    public static String toJSONString(Object obj) {
+    protected static String toJSONString(Object obj) {
         StringBuilder sb = new StringBuilder(1024);
         appendValue(sb, obj, new IdentityHashMap<>());
         return sb.toString();
