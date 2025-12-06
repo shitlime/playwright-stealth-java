@@ -10,6 +10,9 @@ plugins {
 
 group = "io.github.shitlime"
 version = "0.1"
+description = "A Java library written with reference to the Python library playwright_stealth."
+
+val stagingDirectory = layout.buildDirectory.dir("staging-deploy").get()
 
 repositories {
     mavenCentral()
@@ -38,7 +41,7 @@ jreleaser {
                 register("sonatype") {
                     active = Active.RELEASE
                     url = "https://central.sonatype.com/api/v1/publisher"
-                    stagingRepository("target/staging-deploy")
+                    stagingRepository(stagingDirectory.asFile.relativeTo(projectDir).path)
                 }
             }
         }
@@ -49,8 +52,6 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifact(tasks.named("sourcesJar"))
-            artifact(tasks.named("javadocJar"))
             pom {
                 name.set(project.name)
                 description.set(project.description)
@@ -79,7 +80,7 @@ publishing {
     repositories {
         maven {
             name = "stagingRepo"
-            url = layout.buildDirectory.dir("staging-repo").get().asFile.toURI()
+            url = stagingDirectory.asFile.toURI()
         }
     }
 }
